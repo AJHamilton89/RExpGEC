@@ -1,0 +1,22 @@
+% unit test for the function generate_random_symbols_Px
+% Alex Hamilton - 11/9/2021
+
+num_symbols_to_test=0 + (1000-20) .* rand(N,1);
+size_of_distribution= 20 + (1000-20) .* rand(N,1);
+
+
+%generate a probability distribution (random)
+Px = rand(1,size_of_distribution);
+Px=Px./sum(Px);
+
+
+%generate the symbols
+symbols=generate_random_symbols_Px(num_symbols_to_test,Px);
+
+%calculate the histogram
+histbins=histc(symbols,0.5:1:(size_of_distribution-0.5));
+normalisedhist=histbins./sum(histbins);
+
+%calculate the error accross all symbols
+errorvector=sum(Px-normalisedhist)/size_of_distribution
+

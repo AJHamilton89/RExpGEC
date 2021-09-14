@@ -28,5 +28,4 @@ symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
 reorderedcodeword = generate_RExpGcodeword(k,symbols);
 
 %work through trellis and return how many transitions were recorded
-trellis=calculatetrellisprobs(trellis,reorderedcodeword);
-
+codeword=generateRExpGEC(trellis,reorderedcodeword);

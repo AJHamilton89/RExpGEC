@@ -1,4 +1,4 @@
-function trellis=generatetransitionstrellis(stages,k,codingrate) %need to add hamming distance parameter from same state
+function trellis=generatetransitionstrellis(k,stages,codingrate) %need to add hamming distance parameter from same state
 outputseq=[ ];
 clear finaloutputseq
 % set the coding rate is specifically 1/R, rather than R
@@ -85,26 +85,27 @@ for n=1:length(treematrix)
       
     end
     
-    %switch to other trellis
+    %switch to other trellis if encoded bit is 1
     if trellis(n,3) == 1
         
-        trellis(n,2) =    trellis(n,2) + 1;
+        trellis(n,2) = trellis(n,2) + 1;
         
     end
         
   
 end
 
+%bit value=0
 for n=length(treematrix)+1:length(trellis)
         
-      %loop back to original state
+     %loop back to original state
     if trellis(n,4) == 1
        
             trellis(n,2)=1;
       
     end
     
-    %switch to other trellis
+    %switch to other trellis if encoded bit is 1
     if trellis(n,3) == 1
         
         trellis(n,2) =    trellis(n,2) - 1;
@@ -117,7 +118,7 @@ end
 
 for n=1:length(trellis)/2
 
-transition = ceil(rand*(2^codingrate))-1; % generate random number 0-3
+transition = ceil(rand*(2^codingrate))-1; % generate random number 0-coding rate
 transitionbin = bitget(transition, codingrate:-1:1); %turn to binary
 transitionbinopp = ~transitionbin; %get the oppositie for the opposite side
 

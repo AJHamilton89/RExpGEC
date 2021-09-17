@@ -1,5 +1,6 @@
 
-%%%% - Calculating the trellis probabilities via simulation
+%%%% - test script for trellis - checks that the above transitions screate
+%%%% the  same as the bottom ones, by empirically testing many codewords
 
 clear all
 
@@ -7,17 +8,15 @@ clear all
 % set parameters
 
 k=1;
-depth=1; %interesting point that the encoder complexity is affected also
-maxcodes = 32; % set what the maximum value of codeset is. - Powers of 2  make sense
-num_symbols=100000;
-s = 3;
+depth=1; 
 codingrate=2;
-numruns = 1;
+maxcodes=32;
+s=3;
+num_symbols=100000;
 
 
 %Generate the trellis
 trellis=generatetransitionstrellis(k,depth,codingrate); 
-
 
 %%% Transmit Functionality
     
@@ -29,4 +28,8 @@ reorderedcodeword = generate_RExpGcodeword(k,symbols);
 
 %work through trellis and return how many transitions were recorded
 trellis=calculatetrellisprobs(trellis,reorderedcodeword);
+
+transitions=trellis(:,(width(trellis)-1));
+
+error= ( sum(transitions(1:(length(transitions)/2)))   -   sum(transitions((length(transitions)/2+1):(length(transitions))))  ) / sum (transitions)
 

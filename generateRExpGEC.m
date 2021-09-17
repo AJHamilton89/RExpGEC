@@ -39,9 +39,11 @@ for n=1:length(input)
     fromstate=tostate; %create new from state to go back through loop
    
 
-    
+  
+
     
     
 end
+
 
 assert((0 <= tostate) && (tostate <= 1))

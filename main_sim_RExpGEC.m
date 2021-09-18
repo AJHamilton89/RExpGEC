@@ -4,19 +4,19 @@
 clear all
 
 % Channel SNR
-snr = -4:0.2:1;
+snr = -5:1:1;
 
 % set parameters
 
 k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 32; % set what the maximum value of codeset is. - Powers of 2  make sense
-num_symbols=2000;
+num_symbols=200;
 s = 3;
 codingrate=2;
-num_its=10;
+num_its=100;
 num_test_symbols=10000;
-num_runs=100;
+num_runs=10;
 
 % calculate dependent parameters
 
@@ -154,5 +154,8 @@ semilogy(snr,BER);
 xlabel('SNR [dB]');
 ylabel('BER')
 
-fn = sprintf('Figures/BERCurveDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
-saveas(gcf,fn)
+fn1 = sprintf('Figures/BERCurveDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
+saveas(gcf,fn1)
+
+fn2 = sprintf('VariablesStorage/WorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
+save(fn2)

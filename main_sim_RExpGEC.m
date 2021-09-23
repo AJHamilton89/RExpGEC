@@ -4,17 +4,17 @@
 clear all
 
 % Channel SNR
-snr = -5:1:1;
+snr = -5:1:10;
 
 % set parameters
 
 k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 32; % set what the maximum value of codeset is. - Powers of 2  make sense
-num_symbols=200;
+num_symbols=20;
 s = 3;
 codingrate=2;
-num_its=100;
+num_its=10;
 num_test_symbols=10000;
 num_runs=10;
 
@@ -120,7 +120,7 @@ for index = 1:length(snr)
         RExpGECtildea(interleaver1) = RExpGECinttildee;
         
         % Trellis Decoder
-        [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs,num_symbols);
+        [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs);
         
         % Check if decoding has been successful
         xhat = (sign(RExpGtildep) + 1) / 2;;

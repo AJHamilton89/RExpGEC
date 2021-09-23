@@ -71,9 +71,8 @@ alphas(1,1)=0; % We know that this is the first state
 for j = 2:b
     temp = alphas(transitions(:,1),j-1)+gammas(:,j-1);
     for m = 1:r
-        if ismember(m,transitions(:,2))
+        
         alphas(m,j) = maxstar(temp(transitions(:,2) == m));
-        end
     end
 end
 
@@ -84,9 +83,7 @@ betas(1:2,end)=0; % one of the end states
 for j = b-1:-1:1
     temp = betas(transitions(:,2),j+1)+gammas(:,j+1);
     for mprime = 1:r
-        if ismember(mprime,transitions(:,1))
         betas(mprime,j) = maxstar(temp(transitions(:,1) == mprime));
-        else
     end
 end
 

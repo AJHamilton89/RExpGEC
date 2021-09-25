@@ -14,20 +14,19 @@
 % The GNU General Public License can be seen at http://www.gnu.org/licenses/.
 clear all
 
-% set parameters
+% set REXpGEC parameters
 
 k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
 num_symbols=200; %defines block size
-s = 3;
+s = 1.5;
 codingrate=2;
-num_its=100;
 num_test_symbols=10000;
-num_runs=10;
-block_size = 1; %set the block size (not based on no.symbols)
-IA_count = 10; % Choose how many points to plot in the EXIT functions
-block_count = 1;
+
+%set EXIT parameters
+IA_count = 30; % Choose how many points to plot in the EXIT functions
+block_count = 10;
 frame_count = 1;
 
 % calculate dependent parameters
@@ -35,8 +34,6 @@ frame_count = 1;
 
 %Generate the trellis
 trellis=generatetransitionstrellis(k,depth,codingrate);
-
-
 
 %% this section is for calculating the probabilities of the trellis - in practice this would be from an equation
 
@@ -50,9 +47,7 @@ reorderedcodeword_probs = generate_RExpGcodeword(k,symbols_probs);
 %work through trellis and return how many transitions were recorded
 probs=calculatetrellisprobs(trellis,reorderedcodeword_probs);
 
-
-
-
+%initalise variables
 IAs = (0:(IA_count-1))/(IA_count-1);
 IE_means = zeros(1,IA_count);
 IE_stds = zeros(1,IA_count);
@@ -60,47 +55,36 @@ IE_stds = zeros(1,IA_count);
 % Determine each point in the EXIT functions
 for IA_index = 1:IA_count
     
-    IEs = zeros(1,frame_count);
+    IEs = zeros(frame_count,block_count);
     
     %     This runs the simulation long enough to produce smooth EXIT functions.
     for frame_index = 1:frame_count
         
-        %         a = round(rand(block_size-1,block_count));
-        %         b = [a;mod(sum(a,1),2)];
-        
-        reorderedcodeword=NaN(2*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
-        RExpGEC=NaN(4*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
-        apriori=NaN(4*codingrate*num_symbols,block_size);
+       
+     
         
         for block_index = 1:block_count
             %Generate array of symbols in the zeta distribution
-            symbols(:,block_index)=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
+            symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
             
             %Generate a reordered ExpG codeword from the symbols
-            reorderedcodewordtemp = generate_RExpGcodeword(k,symbols(:,block_index));
-%             reorderedcodeword(1:length(reorderedcodewordtemp),block_index) = reorderedcodewordtemp;
+            reorderedcodeword = generate_RExpGcodeword(k,symbols);
             
             %Generate RExpGEC codeword
-%             idnotNaN=(~isnan(reorderedcodewordtemp));
-            RExpGECtemp=generateRExpGEC(trellis,reorderedcodewordtemp);
-            RExpGEC(1:length(RExpGECtemp),block_index)=RExpGECtemp;
-            
-            
-            apriori = generate_llrs(RExpGECtemp,IAs(IA_index));
-%             extrinsic = zeros(size(apriori));
-            
-            
-            
-            
+            RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
+       
+            %create apriori LLRs
+            apriori = generate_llrs(RExpGEC,IAs(IA_index));
+          
+            %create extrinsic LLRs
             extrinsic = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
-%         extrinsic(:,block_index) = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
-
+            
+            %measure the Information
+            IEs(frame_index,block_index) = measure_mutual_information_averaging(extrinsic);           
+            %IEs(frame_index,block_index) = measure_mutual_information_histogram(extrinsic,RExpGEC);
         end
         
-        %IEs(frame_index) = measure_mutual_information_averaging(extrinsic);
-                
         
-        IEs(frame_index) = measure_mutual_information_histogram(extrinsic,RExpGECtemp); %HACK
         
         
     end

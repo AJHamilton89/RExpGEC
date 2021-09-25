@@ -16,19 +16,19 @@ clear all
 
 % set parameters
 
-k=2;
+k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
 num_symbols=200; %defines block size
-s = 3;
+s = 1.5;
 codingrate=2;
 num_its=100;
 num_test_symbols=10000;
 num_runs=10;
-block_size = 20; %set the block size (not based on no.symbols)
-IA_count = 20; % Choose how many points to plot in the EXIT functions
-block_count = 100;
-frame_count = 10;
+block_size = 1; %set the block size (not based on no.symbols)
+IA_count = 10; % Choose how many points to plot in the EXIT functions
+block_count = 1;
+frame_count = 1;
 
 % calculate dependent parameters
 
@@ -60,17 +60,17 @@ IE_stds = zeros(1,IA_count);
 % Determine each point in the EXIT functions
 for IA_index = 1:IA_count
     
-    IEs = zeros(1,frame_count);
+    IEs = zeros(frame_count,block_count);
     
     %     This runs the simulation long enough to produce smooth EXIT functions.
     for frame_index = 1:frame_count
         
-%         a = round(rand(block_size-1,block_count));
-%         b = [a;mod(sum(a,1),2)];
-
-          reorderedcodeword=NaN(2*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
-          RExpGEC=NaN(4*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
-          
+        %         a = round(rand(block_size-1,block_count));
+        %         b = [a;mod(sum(a,1),2)];
+        
+        reorderedcodeword=NaN(2*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
+        RExpGEC=NaN(4*codingrate*num_symbols,block_size); %create an array of NaNs much bigger than maximum block size
+        apriori=NaN(4*codingrate*num_symbols,block_size);
         
         for block_index = 1:block_count
             %Generate array of symbols in the zeta distribution
@@ -78,27 +78,29 @@ for IA_index = 1:IA_count
             
             %Generate a reordered ExpG codeword from the symbols
             reorderedcodewordtemp = generate_RExpGcodeword(k,symbols(:,block_index));
-            reorderedcodeword(1:length(reorderedcodewordtemp),block_index) = reorderedcodewordtemp;
+            %             reorderedcodeword(1:length(reorderedcodewordtemp),block_index) = reorderedcodewordtemp;
             
             %Generate RExpGEC codeword
-            idnotNaN=(~isnan(reorderedcodewordtemp));
-            RExpGECtemp=generateRExpGEC(trellis,reorderedcodewordtemp(idnotNaN));
+            %             idnotNaN=(~isnan(reorderedcodewordtemp));
+            RExpGECtemp=generateRExpGEC(trellis,reorderedcodewordtemp);
             RExpGEC(1:length(RExpGECtemp),block_index)=RExpGECtemp;
-        end
-        
-        apriori = generate_llrs(RExpGEC,IAs(IA_index));
-        extrinsic = zeros(size(apriori));
-        
-        for block_index = 1:block_count
-            aprioritempincNaN=apriori(:,block_index);
-             idnotNaNapriori=(~isnan(aprioritempincNaN));
             
             
-            extrinsic(:,block_index) = RExpGEC_trellis_decoder(apriori(:,block_index),trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
+            apriori = generate_llrs(RExpGECtemp,IAs(IA_index));
+            %             extrinsic = zeros(size(apriori));
+            
+            
+            
+            
+            extrinsic = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
+            %         extrinsic(:,block_index) = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
+            
+            
+            %IEs(frame_index,block_index) = measure_mutual_information_averaging(extrinsic);           
+            IEs(frame_index,block_index) = measure_mutual_information_histogram(extrinsic,RExpGECtemp);
         end
         
-        IEs(frame_index) = measure_mutual_information_averaging(extrinsic);
-        %         IEs(frame_index) = measure_mutual_information_histogram(extrinsic,b);
+        
         
         
     end

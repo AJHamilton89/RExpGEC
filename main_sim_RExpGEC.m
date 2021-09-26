@@ -4,7 +4,7 @@
 clear all
 
 % Channel SNR
-snr = -5:1:10;
+snr = 100:1:100;
 
 % set parameters
 
@@ -123,7 +123,7 @@ for index = 1:length(snr)
         [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs);
         
         % Check if decoding has been successful
-        xhat = (sign(RExpGtildep) + 1) / 2;;
+        xhat = (sign(RExpGtildep) + 1) / 2;
         if isequal(xhat,reorderedcodeword)
             Positive_result(n)=1;
             break;

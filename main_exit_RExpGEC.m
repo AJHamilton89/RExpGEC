@@ -16,105 +16,131 @@ clear all
 
 % set REXpGEC parameters
 
-for k=1:2;
-    depth=1; %interesting point that the encoder complexity is affected also
-    maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
-    num_symbols=200; %defines block size
-    for s = 1:0.1:3;
+for codingrate=2:4
+    
+    for depth=1:3
         
-        codingrate=2;
-        num_test_symbols=10000;
-        
-        %set EXIT parameters
-        IA_count = 50; % Choose how many points to plot in the EXIT functions
-        block_count = 10;
-        
-        
-        % calculate dependent parameters
-        
-        
-        %Generate the trellis
-        trellis=generatetransitionstrellis(k,depth,codingrate);
-        
-        %% this section is for calculating the probabilities of the trellis - in practice this would be from an equation
-        
-        %Generate array of symbols in the zeta distribution
-        symbols_probs=generate_zeta_symbols_finite_dict(num_test_symbols,maxcodes,s);
-        
-        %Generate a reordered ExpG codeword from the symbols
-        reorderedcodeword_probs = generate_RExpGcodeword(k,symbols_probs);
-        
-        
-        %work through trellis and return how many transitions were recorded
-        probs=calculatetrellisprobs(trellis,reorderedcodeword_probs);
-        
-        %initalise variables
-        IAs = (0:(IA_count-1))/(IA_count-1);
-        IE_means = zeros(1,IA_count);
-        IE_stds = zeros(1,IA_count);
-        
-        % Determine each point in the EXIT functions
-        for IA_index = 1:IA_count
-            
-            IEs = zeros(block_count);
-            
-            
-            
-            
-            
-            for block_index = 1:block_count
+        for k=0:1:2
+                                    
+            for s = 1.1:0.1:3
+                
+                %variables that don't loop
+                maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
+                num_symbols=200; %defines block size
+                num_test_symbols=10000;
+                
+                %set EXIT parameters
+                IA_count = 50; % Choose how many points to plot in the EXIT functions
+                block_count = 10;
+                
+                
+                % calculate dependent parameters
+                
+                
+                %Generate the trellis
+                trellis=generatetransitionstrellis(k,depth,codingrate);
+                
+                %% this section is for calculating the probabilities of the trellis - in practice this would be from an equation
+                
                 %Generate array of symbols in the zeta distribution
-                symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
+                symbols_probs=generate_zeta_symbols_finite_dict(num_test_symbols,maxcodes,s);
                 
                 %Generate a reordered ExpG codeword from the symbols
-                reorderedcodeword = generate_RExpGcodeword(k,symbols);
+                reorderedcodeword_probs = generate_RExpGcodeword(k,symbols_probs);
                 
-                %Generate RExpGEC codeword
-                RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
                 
-                %create apriori LLRs
-                apriori = generate_llrs(RExpGEC,IAs(IA_index));
+                %work through trellis and return how many transitions were recorded
+                probs=calculatetrellisprobs(trellis,reorderedcodeword_probs);
                 
-                %create extrinsic LLRs
-                extrinsic = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
+                %initalise variables
+                IAs = 0.999*(0:1/(IA_count-1):1);
+                IE_av = zeros(1,IA_count);
+                IE_means_hist = zeros(1,IA_count);
+                area=0.0;
                 
-                %measure the Information
-                IEs(block_index) = measure_mutual_information_averaging(extrinsic);
-                %IEs(block_index) = measure_mutual_information_histogram(extrinsic,RExpGEC);
+                % Determine each point in the EXIT functions
+                for IA_index = 1:IA_count
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    for block_index = 1:block_count
+                        %Generate array of symbols in the zeta distribution
+                        symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
+                        
+                        %Generate a reordered ExpG codeword from the symbols
+                        clear reorderedcodeword
+                        reorderedcodeword = generate_RExpGcodeword(k,symbols);
+                        
+                        %Generate RExpGEC codeword
+                        clear RExpGEC
+                        RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
+                        
+                        %create apriori LLRs
+                        clear apriori
+                        apriori = generate_llrs(RExpGEC,IAs(IA_index));
+                        
+                        %create extrinsic LLRs
+                        clear extrinsic
+                        extrinsic = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
+                        
+                        %measure the Information
+                        IEs_av(block_index) = measure_mutual_information_averaging(extrinsic);
+                        IEs_hist(block_index) = measure_mutual_information_histogram(extrinsic,RExpGEC);
+                    end
+                    
+                    
+                    
+                    
+                    
+                    %Store the mean and standard deviation of the results
+                    IE_av(IA_index) = mean(IEs_av);
+                    IE_means_hist(IA_index) = mean(IEs_hist);
+                    
+                    if(IA_index > 1)
+                        area = area + (IE_av(IA_index)+IE_av(IA_index-1))*(IAs(IA_index)-IAs(IA_index-1))/2;
+                    end
+                    
+                end
+                
+                %Create a figure to plot the results.
+                figure;
+                axis square;
+                EXITtitle=sprintf('EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i s=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s);
+                title(EXITtitle);
+                ylabel('I_A');
+                xlabel('I_E');
+                xlim([0,1]);
+                ylim([0,1]);
+                
+                hold on;
+                
+                cnmean=IE_av;
+                
+                % % Plot the  EXIT function for the RExpgEC
+                %         plot(IE_av,IAs,'-');
+                plot(IAs,IE_means_hist,'r');
+                plot(IAs,IE_av,'b');
+                legend({'True quality','Claimed quality'},'Location','northwest');
+                
+                % Display the area beneath the EXIT function
+                annotation('textbox','String',{['Area = ', num2str(area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
+                
+                
+                hold on;
+                
+                fn1 = sprintf('Figures/EXITchartRExpGECDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s);
+                saveas(gcf,fn1)
+                
+                fn2 = sprintf('VariablesStorage/EXITRExpGECWorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s);
+                save(fn2)
             end
             
-            
-            
-            
-            
-            %Store the mean and standard deviation of the results
-            IE_means(IA_index) = mean(IEs);
-            IE_stds(IA_index) = std(IEs);
         end
         
-        %Create a figure to plot the results.
-        figure;
-        axis square;
-        EXITtitle=sprintf('EXIT Function of CND with Bands Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i s=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s);
-        title(EXITtitle);
-        ylabel('I_A');
-        xlabel('I_E');
-        xlim([0,1]);
-        ylim([0,1]);
-        
-        hold on;
-        
-        cnmean=IE_means;
-        
-        % % Plot the  EXIT function for the RExpgEC
-        plot(IE_means,IAs,'-');
-        plot(IE_means+IE_stds,IAs,'--');
-        plot(IE_means-IE_stds,IAs,'--');
-        hold on;
-        
-        fn1 = sprintf('Figures/EXITchartDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s);
-        saveas(gcf,fn1)
-        
-        
     end
+    
 end

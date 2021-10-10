@@ -148,7 +148,7 @@ totalbits2=sum(totalbits,2);
 
 BER=errorbits2./totalbits2;
 
-%figure
+figure
 
 semilogy(snr,BER);
 xlabel('SNR [dB]');

@@ -78,11 +78,11 @@ trellis(length(treematrix)+1:end,1:2)=(trellis(length(treematrix)+1:end,1:2)*2)+
 %bit value = 1
 for n=1:length(treematrix)
     
-      %loop back to original state
+    %loop back to original state
     if trellis(n,4) == 1
-       
-            trellis(n,2)=0;
-      
+        
+        trellis(n,2)=0;
+        
     end
     
     %switch to other trellis if encoded bit is 1
@@ -91,18 +91,18 @@ for n=1:length(treematrix)
         trellis(n,2) = trellis(n,2) + 1;
         
     end
-        
-  
+    
+    
 end
 
 %bit value=0
 for n=length(treematrix)+1:length(trellis)
-        
-     %loop back to original state
+    
+    %loop back to original state
     if trellis(n,4) == 1
-       
-            trellis(n,2)=1;
-      
+        
+        trellis(n,2)=1;
+        
     end
     
     %switch to other trellis if encoded bit is 1
@@ -111,20 +111,26 @@ for n=length(treematrix)+1:length(trellis)
         trellis(n,2) =    trellis(n,2) - 1;
         
     end
-        
+    
 end
 
 %%generate random transistion for UEC codeword
 
-for n=1:length(trellis)/2
-
-transition = ceil(rand*(2^codingrate))-1; % generate random number 0-coding rate
-transitionbin = bitget(transition, codingrate:-1:1); %turn to binary
-transitionbinopp = ~transitionbin; %get the oppositie for the opposite side
-
-trellis(n,5:(5+codingrate-1))=transitionbin; % start populating trellis transitions
-trellis(n+(length(trellis)/2),5:(5+codingrate-1))=transitionbinopp; %start populating transitions
-
+for n=1:2:length(trellis)/2
+    
+    transition = ceil(rand*(2^codingrate))-1; % generate random number 0-coding rate
+    transitionbin = bitget(transition, codingrate:-1:1); %turn to binary
+    transitionbinopp = ~transitionbin; %get the oppositie for the opposite side
+    
+    
+    trellis(n,5:(5+codingrate-1))=transitionbin; % start populating trellis transitions - original transition
+    
+     trellis(n+1,5:(5+codingrate-1))=transitionbinopp; %ensure that transitions from the same state are orthogonal
+    
+    trellis(n+(length(trellis)/2),5:(5+codingrate-1))=transitionbinopp; %ensure that transitions accross trellis are orthogonal
+    
+     trellis(n+1+(length(trellis)/2),5:(5+codingrate-1))=transitionbin; %ensure that transitions from the same state are orthogonal
+  
 end
 
 

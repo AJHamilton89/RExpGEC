@@ -1,3 +1,4 @@
+
 % Script for drawing the EXIT chart of the RExpGEC
 % Copyright (C) 2021  Alex Hamilton
 %
@@ -16,25 +17,36 @@ clear all
 
 % set REXpGEC parameters
 
+%variables that don't loop
+
+
+p1_count=10;
+p1 = 0.00001+0.9999*(0:1/(p1_count-1):1);
+
+maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
+num_symbols=200; %defines block size
+num_test_symbols=10000;
+
+%set EXIT parameters
+IA_count = 10; % Choose how many points to plot in the EXIT functions
+block_count = 10;
+
+
+
 for codingrate=2:4
     
     for depth=1:3
         
         for k=0:1:2
-                                    
-            for s = 1.1:0.1:3
+            
+            for p1_index = 1:p1_count
                 
-                %variables that don't loop
-                maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
-                num_symbols=200; %defines block size
-                num_test_symbols=10000;
-                
-                %set EXIT parameters
-                IA_count = 50; % Choose how many points to plot in the EXIT functions
-                block_count = 10;
+                s=zeta_p1_to_s(p1(p1_index));
+                s_storage(p1_index)=s;
                 
                 
-                % calculate dependent parameters
+                
+                
                 
                 
                 %Generate the trellis
@@ -144,3 +156,5 @@ for codingrate=2:4
     end
     
 end
+
+

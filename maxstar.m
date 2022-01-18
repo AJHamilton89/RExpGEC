@@ -17,20 +17,20 @@
 % out is a scalar or vector, provding the maxstar combination of the operands
 function out = maxstar(in)
 
-global approx_maxstar;
+% global approx_maxstar;
 
-if approx_maxstar
+%if approx_maxstar
     out = max(in); % Max-Log-MAP approximation
-else
-    if size(in,1) == 1
-        in = in';
-    end
-    out = in(1,:);
-    for index = 2:size(in,1)        
-        difference = out-in(index,:);
-        difference(isnan(difference)) = 0;
-        out = max(out,in(index,:)) + log(1+exp(-abs(difference))); % Log-MAP
-    end
+%else
+%     if size(in,1) == 1
+%         in = in';
+%     end
+%     out = in(1,:);
+%     for index = 2:size(in,1)        
+%         difference = out-in(index,:);
+%         difference(isnan(difference)) = 0;
+%         out = max(out,in(index,:)) + log(1+exp(-abs(difference))); % Log-MAP
+%     end
 end
    
 

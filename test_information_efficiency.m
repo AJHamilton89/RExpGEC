@@ -3,14 +3,14 @@ clear all
 
 index = 1;
 
-kmax=5;
-p1_count=100;
+kmax=1;
+p1_count=10;
 
 
 % p1 = (0:(p1_count-1))/(p1_count-1);
 p1 = 0.00001+0.9999*(0:1/(p1_count-1):1);
 
-for max=[1000];%10,100,1000,
+for max=[100];%10,100,1000,
     
     for p1_index = 1:p1_count
         

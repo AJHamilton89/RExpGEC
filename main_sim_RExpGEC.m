@@ -4,14 +4,14 @@
 clear all
 
 % Channel SNR
-snr = 100:1:100;
+snr = -10:1:10;
 
 % set parameters
 
 k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 32; % set what the maximum value of codeset is. - Powers of 2  make sense
-num_symbols=20;
+num_symbols=2000;
 s = 3;
 codingrate=2;
 num_its=10;
@@ -46,107 +46,114 @@ for index = 1:length(snr)
     
     
     for n=1:num_runs
-    %%% Transmit Functionality
-    
-    %Generate array of symbols in the zeta distribution
-    symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
-    
-    %Generate a reordered ExpG codeword from the symbols
-    reorderedcodeword = generate_RExpGcodeword(k,symbols);
-    
-    %Generate RExpGEC codeword
-    RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
-    
-    %Generate the first interleaver & interleave
-    interleaver1 = randperm(length(RExpGEC)); % create the interleaver
-    RExpGECint=RExpGEC(interleaver1); % interleave the codeword
-    
-    %Pass through URC encorder
-    TxCodeword=URC_encoder(RExpGECint);
-    
-    %Generate the second interleaver & interleave
-    interleaver2 = randperm(length(TxCodeword)); % create the interleaver
-    TxCodewordint=TxCodeword(interleaver2); % interleave the codeword
-    
-    %shape the bits
-    Txbits_QPSK = reshape(TxCodewordint,[2,length(TxCodewordint)/2]); %reshape the codeword to get ready to Tx - should be integrated into a function.
-    
-    %Modulate the codeword
-    TxSignal = modulate(Txbits_QPSK);
-    
-    
-    
-    
-    
-    % Channel
-    % -------
-    
-    % Uncorrelated Rayleigh fading channel
-    %channel = sqrt(1/2)*(randn(size(TxSignal)))+i*randn(size(TxSignal));
-    
-    % AWGN channel
-    channel = ones(size(TxSignal));
-   
-    % Generate some noise
-    N0 = 1/(10^(snr(index)/10));
-    noise = sqrt(N0/2)*((randn(size(TxSignal)))+i*randn(size(TxSignal)));
-    
-    % Generate the received signal
-    RxSignal = TxSignal.*channel+noise;
-    
-
-    
-    
-    %%% Receive Functionality
-    
-    %demodulate
-    LLRs_QPSK_tilde = soft_demodulate(RxSignal, channel, N0);
-    channelLLRs = reshape(LLRs_QPSK_tilde,size(TxCodeword));
-    
-    %deinteleave - interleaver 2
-    deinterleavedchannelLLRs = zeros(size(channelLLRs));
-    deinterleavedchannelLLRs(interleaver2) = channelLLRs;
-    
-    RExpGECinttildea = zeros(size(channelLLRs));
-    
-    %% iterations will start from here
-    for m=1:num_its
-        %URC decoding
+        %%% Transmit Functionality
         
-        RExpGECinttildee = URC2_decoder_bcjr(RExpGECinttildea,deinterleavedchannelLLRs); %
+        %Generate array of symbols in the zeta distribution
+        symbols=generate_zeta_symbols_finite_dict(num_symbols,maxcodes,s);
         
-        % Deinterleaver 1
-        RExpGECtildea = zeros(size(RExpGECinttildee));
-        RExpGECtildea(interleaver1) = RExpGECinttildee;
+        %Generate a reordered ExpG codeword from the symbols
+        reorderedcodeword = generate_RExpGcodeword(k,symbols);
         
-        % Trellis Decoder
-        [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs);
+        %Generate RExpGEC codeword
+        RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
         
-        % Check if decoding has been successful
-        xhat = (sign(RExpGtildep) + 1) / 2;
-        if isequal(xhat,reorderedcodeword)
-            Positive_result(n)=1;
-            break;
+        %Generate the first interleaver & interleave
+        interleaver1 = randperm(length(RExpGEC)); % create the interleaver
+        RExpGECint=RExpGEC(interleaver1); % interleave the codeword
+        
+        %Pass through URC encorder
+        TxCodeword=URC_encoder(RExpGECint);
+        
+        %Generate the second interleaver & interleave
+        interleaver2 = randperm(length(TxCodeword)); % create the interleaver
+        TxCodewordint=TxCodeword(interleaver2); % interleave the codeword
+        
+        %shape the bits
+        Txbits_QPSK = reshape(TxCodewordint,[2,length(TxCodewordint)/2]); %reshape the codeword to get ready to Tx - should be integrated into a function.
+        
+        %Modulate the codeword
+        TxSignal = modulate(Txbits_QPSK);
+        
+        
+        
+        
+        
+        % Channel
+        % -------
+        
+        % Uncorrelated Rayleigh fading channel
+        %channel = sqrt(1/2)*(randn(size(TxSignal)))+i*randn(size(TxSignal));
+        
+        % AWGN channel
+        channel = ones(size(TxSignal));
+        
+        % Generate some noise
+        N0 = 1/(10^(snr(index)/10));
+        noise = sqrt(N0/2)*((randn(size(TxSignal)))+i*randn(size(TxSignal)));
+        
+        % Generate the received signal
+        RxSignal = TxSignal.*channel+noise;
+        
+        
+        
+        
+        %%% Receive Functionality
+        
+        %demodulate
+        LLRs_QPSK_tilde = soft_demodulate(RxSignal, channel, N0);
+        channelLLRs = reshape(LLRs_QPSK_tilde,size(TxCodeword));
+        
+        %deinteleave - interleaver 2
+        deinterleavedchannelLLRs = zeros(size(channelLLRs));
+        deinterleavedchannelLLRs(interleaver2) = channelLLRs;
+        
+        RExpGECinttildea = zeros(size(channelLLRs));
+        
+        %% iterations will start from here
+        for m=1:num_its
+            %URC decoding
+            
+            RExpGECinttildee = URC2_decoder_bcjr(RExpGECinttildea,deinterleavedchannelLLRs); %
+            
+            % Deinterleaver 1
+            RExpGECtildea = zeros(size(RExpGECinttildee));
+            RExpGECtildea(interleaver1) = RExpGECinttildee;
+            
+            % Trellis Decoder
+            [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs);
+            
+            % Check if decoding has been successful
+            xhat = (sign(RExpGtildep) + 1) / 2;
+            if isequal(xhat,reorderedcodeword)
+                Positive_result(n)=1;
+                break;
+            end
+            
+            % Interleaver 1
+            RExpGECinttildea = RExpGECtildee(interleaver1);
         end
         
-        % Interleaver 1
-        RExpGECinttildea = RExpGECtildee(interleaver1);
+        errorbits(index,n)=sum(reorderedcodeword~=xhat);
+        totalbits(index,n)=length(reorderedcodeword);
+        
+        Rxsymbols= RExpGEC_symbol_decoder(xhat,trellis,k,maxcodes);
+        symbolsinerr(index,n) = levenshtein_distance(Rxsymbols,symbols);%length(symbols)-sum(Rxsymbols == symbols);
+        totalsymbols(index,n) = length(symbols);
+        
     end
     
-    errorbits(index,n)=sum(reorderedcodeword~=xhat);
-    totalbits(index,n)=length(reorderedcodeword);
-    
-  
-    
-    end
-    
-      Positive_result;
+    Positive_result;
 end
 
-errorbits2=sum(errorbits,2);
-totalbits2=sum(totalbits,2);
+errorbits2 = sum(errorbits,2);
+totalbits2 = sum(totalbits,2);
 
-BER=errorbits2./totalbits2;
+BER = errorbits2./totalbits2;
+
+symbolerr2 = sum(symbolsinerr,2);
+totalsymbols2 = sum(totalsymbols,2);
+
+SER = symbolerr2./totalsymbols;
 
 figure
 
@@ -157,5 +164,15 @@ ylabel('BER')
 fn1 = sprintf('Figures/BERCurveDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
 saveas(gcf,fn1)
 
-fn2 = sprintf('VariablesStorage/WorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
+fn2 = sprintf('VariablesStorage/BERSERWorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
 save(fn2)
+
+figure
+
+semilogy(snr,SER);
+xlabel('SNR [dB]');
+ylabel('SER')
+
+fn3 = sprintf('Figures/SERCurveDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_s=%i_num_its=%i_num_runs=%i.fig',depth,codingrate,k,maxcodes,num_symbols,s,num_its,num_runs);
+saveas(gcf,fn3)
+

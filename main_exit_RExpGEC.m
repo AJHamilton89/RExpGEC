@@ -28,7 +28,7 @@ num_symbols=10000; %defines block size
 num_test_symbols=100000;
 
 %set EXIT parameters
-IA_count = 20; % Choose how many points to plot in the EXIT functions
+IA_count = 7; % Choose how many points to plot in the EXIT functions
 block_count = 1;
 
 
@@ -37,13 +37,13 @@ for codingrate=2:4
     
     for depth=1:2
         
-        for k=1:2
+        for k=0:2
             
             %Generate the trellis
             trellis=generatetransitionstrellis(k,depth,codingrate);
             
             
-            for p1_index = 8:p1_count
+            for p1_index = 10:p1_count
                 
                 s=zeta_p1_to_s(p1(p1_index));
                 s_storage(p1_index)=s;

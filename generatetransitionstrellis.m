@@ -116,7 +116,9 @@ end
 
 %%generate random transistion for UEC codeword
 
-for n=1:2:length(trellis)/2
+trellis = sortrows(trellis,1);
+
+for n=1:4:length(trellis)
     
     transition = mod(ceil(n/2),(2^codingrate)); % ceil(rand*(2^codingrate))-1; % generate random number 0-coding rate
     transitionbin = bitget(transition, codingrate:-1:1); %turn to binary
@@ -124,16 +126,13 @@ for n=1:2:length(trellis)/2
     
     
     trellis(n,5:(5+codingrate-1))=transitionbin; % start populating trellis transitions - original transition
+       
+    trellis(n+1,5:(5+codingrate-1))=transitionbinopp; %ensure that transitions from the same state are orthogonal
     
+    trellis(n+2,5:(5+codingrate-1))=transitionbinopp; %ensure that transitions accross trellis are orthogonal
     
-   trellis(n+1,5:(5+codingrate-1))=transitionbinopp; %ensure that transitions from the same state are orthogonal
-     % trellis(( find ( ( -(trellis(:,1)==n-1) .* ((trellis(:,2)==trellis(n,2))-1) ) ==1) ) ,5:(5+codingrate-1))=transitionbinopp; %ensure that transitions from the same state are orthogonal
- 
-   
-    trellis(n+(length(trellis)/2),5:(5+codingrate-1))=transitionbinopp; %ensure that transitions accross trellis are orthogonal
+    trellis(n+3,5:(5+codingrate-1))=transitionbin; %ensure that transitions from the same state are orthogonal
     
-     trellis(n+1+(length(trellis)/2),5:(5+codingrate-1))=transitionbin; %ensure that transitions from the same state are orthogonal
-  
 end
 
 

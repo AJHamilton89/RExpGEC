@@ -66,7 +66,8 @@ if nargin < 3 %if we don't have the probs passed through
     
 else
 
-gammas = repmat(log(probs),1,b); % gammas = repmat(log(probs./(1-probs)),1,b);
+gammas = repmat(log(probs),1,b); % 
+% gammas = repmat(log((probs./(1-probs))),1,b);
 
 end
 
@@ -82,7 +83,7 @@ end
 
 % Forward recursion to calculate state log-probabilities
 alphas=-inf(r,b);
-alphas(1,1)=0; % We know that this is the first state - THIS MAY BE THE ISSUE - altered to be one of two.
+alphas(1,1)=0; % We know that this is the first state 
 
 
 for j = 2:b

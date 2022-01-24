@@ -12,12 +12,12 @@ k=1;
 depth=1; %interesting point that the encoder complexity is affected also
 maxcodes = 32; % set what the maximum value of codeset is. - Powers of 2  make sense
 num_symbols=2000;
-s = 3;
+p1 = 0.6;
 codingrate=2;
 num_its=10;
 num_test_symbols=10000;
 num_runs=10;
-
+s=zeta_p1_to_s(p1);
 % calculate dependent parameters
 
 

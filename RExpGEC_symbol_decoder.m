@@ -72,7 +72,18 @@ for n=1:length(input)
         row = [codewordtemp NANfiller]; %make it look like a row in the codese
         row(isnan(row))=2;%make it look like a row in the codeset and do the same bodge as above
         
-        symbols(symbolnumber) = find(ismember(codeset, row,'rows'));%lookup in the codeset
+        symbol = find(ismember(codeset, row,'rows'));%lookup in the codeset
+        
+        if isempty(symbol)%error handling case - if we end up at stop point of trellis but symbol isn't found allocate symbol value of 0 so that it will be registered as an error
+            
+            symbols(symbolnumber) = 0;
+            
+        else
+            
+            symbols(symbolnumber) = symbol;
+            
+        end
+        
         symbolnumber=symbolnumber+1;%index +1
         
         codewordtemp= []; %reset codewordtemp

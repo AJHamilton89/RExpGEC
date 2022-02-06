@@ -24,7 +24,7 @@ prev='';
 p1_count=10;
 p1 = 0.00001+0.9999*(0:1/(p1_count-1):1);
 
-maxcodes = 100; % set what the maximum value of codeset is. - Powers of 2  make sense
+maxcodes = 1000; % set what the maximum value of codeset is. - Powers of 2  make sense
 num_symbols=10000; %defines block size
 num_test_symbols=10000;
 
@@ -38,7 +38,7 @@ for codingrate=2:4
     
     for depth=1:2
         
-        for k=2:2
+        for k=1:2
             
             %Generate the trellis
             trellis=generatetransitionstrellis(k,depth,codingrate);
@@ -106,7 +106,7 @@ for codingrate=2:4
                         [extrinsic,extrinsicRExpG] = RExpGEC_trellis_decoder(apriori,trellis,probs); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
                         
                         [extrinsicnoprobs,extrinsicRExpGnoprobs] = RExpGEC_trellis_decoder(apriori,trellis); % this is measuring the MI of the output, i.e. the RExpG codewords, not the RExpGEC codeword
-                       
+                        
                         IEs_hist_noprobs(block_index) = measure_mutual_information_histogram(extrinsicnoprobs,RExpGEC);
                         %measure the Information
                         IEs_av(block_index) = measure_mutual_information_averaging(extrinsic);
@@ -129,38 +129,38 @@ for codingrate=2:4
                     
                 end
                 
-%                 %Create a figure to plot the results.
-%                 figure;
-%                 axis square;
-%                 EXITtitle=sprintf('EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
-%                 title(EXITtitle);
-%                 ylabel('I_A');
-%                 xlabel('I_E');
-%                 xlim([0,1]);
-%                 ylim([0,1]);
-%                 
-%                 hold on;
-%                 
-%                 cnmean=IE_av;
-%                 
-%                 % % Plot the  EXIT function for the RExpgEC
-%                 %         plot(IE_av,IAs,'-');
-%                 plot(IAs,IE_means_hist,'r');
-%                 plot(IAs,IE_av,'b');
-%                 legend({'True quality','Claimed quality'},'Location','northwest');
-%                 
-%                 % Display the area beneath the EXIT function
-%                 annotation('textbox','String',{['Area = ', num2str(area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
-%                 
-%                 
-%                 hold on;
-%                 
-%                 fn1 = sprintf('Figures/EXITchartRExpGECDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
-%                 saveas(gcf,fn1)
+                %                 %Create a figure to plot the results.
+                %                 figure;
+                %                 axis square;
+                %                 EXITtitle=sprintf('EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
+                %                 title(EXITtitle);
+                %                 ylabel('I_A');
+                %                 xlabel('I_E');
+                %                 xlim([0,1]);
+                %                 ylim([0,1]);
+                %
+                %                 hold on;
+                %
+                %                 cnmean=IE_av;
+                %
+                %                 % % Plot the  EXIT function for the RExpgEC
+                %                 %         plot(IE_av,IAs,'-');
+                %                 plot(IAs,IE_means_hist,'r');
+                %                 plot(IAs,IE_av,'b');
+                %                 legend({'True quality','Claimed quality'},'Location','northwest');
+                %
+                %                 % Display the area beneath the EXIT function
+                %                 annotation('textbox','String',{['Area = ', num2str(area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
+                %
+                %
+                %                 hold on;
+                %
+                %                 fn1 = sprintf('Figures/EXITchartRExpGECDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
+                %                 saveas(gcf,fn1)
                 
                 
                 %Create a figure to plot the results.
-%                 figure;
+                figure;
                 axis square;
                 EXITtitle=sprintf('Inverted EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
                 title(EXITtitle);
@@ -177,21 +177,21 @@ for codingrate=2:4
                 %         plot(IE_av,IAs,'-');
                 plot(IE_means_hist,IAs);
                 plot(IE_means_hist_noprobs,IAs,'b--o');
-%                 plot(IE_av,IAs,'b');
-%                 legend({'True quality','Claimed quality'},'Location','northwest');
-               
-current_label = [prev; sprintf('   Probs K=%i p1=%i',k,p1(p1_index)); sprintf('No Probs K=%i p1=%i',k,p1(p1_index)) ];
-legend(current_label,'Location','northwest');
-prev = current_label;
-drawnow
-                % Display the area beneath the EXIT function
-%                 annotation('textbox','String',{['Area = ', num2str(1-area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
+                %                 plot(IE_av,IAs,'b');
+                %                 legend({'True quality','Claimed quality'},'Location','northwest');
                 
-%                 fn3 = sprintf('Figures/InvertedEXITchartRExpGECDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
-%                 saveas(gcf,fn3)
-%                 
-%                 fn2 = sprintf('VariablesStorage/EXITRExpGECWorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.mat',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
-%                 save(fn2)
+                current_label = [prev; sprintf('   Probs K=%i p1=%i',k,p1(p1_index)); sprintf('No Probs K=%i p1=%i',k,p1(p1_index)) ];
+                legend(current_label,'Location','northwest');
+                prev = current_label;
+                drawnow
+                % Display the area beneath the EXIT function
+                %                 annotation('textbox','String',{['Area = ', num2str(1-area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
+                
+                %                 fn3 = sprintf('Figures/InvertedEXITchartRExpGECDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
+                %                 saveas(gcf,fn3)
+                %
+                %                 fn2 = sprintf('VariablesStorage/EXITRExpGECWorkspaceDepth=%i_Rate=%i_K=%i_maxcodes=%i_num_symbols=%i_p1=%i.mat',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
+                %                 save(fn2)
             end
             
         end

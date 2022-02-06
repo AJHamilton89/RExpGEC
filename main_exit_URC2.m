@@ -22,7 +22,7 @@ bit_count=100000;
 IA_count=50;
 
 % Channel SNR in dB
-SNR = -5:0.2:5;
+SNR = 1.5:0.2:1.5;
 
 for SNRindex=1:length(SNR);
 

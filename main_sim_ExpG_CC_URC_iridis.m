@@ -1,6 +1,6 @@
 
 %%%% - Test script for generating and transmitting RExpGEC codewords
-function main_sim_RExpGEC_iridis(SNR_start, SNR_delta, SNR_stop, BER_stop, processes,p1,k,depth,num_symbols,codingrate)
+function main_sim_ExpG_CC_URC_iridis(SNR_start, SNR_delta, SNR_stop, BER_stop, processes,p1,k,num_symbols,codingrate)
 
 
 
@@ -77,17 +77,8 @@ s=zeta_p1_to_s(p1);
 
 %% Complexity Calculation Section
 
-no_trellis_states =  2^(depth-1)*[4*(2^(k-1))+4];
-no_alphas = 2*no_trellis_states;
-no_betas = 2*no_trellis_states;
-no_gammas = 4*2*no_trellis_states;
-no_deltas = 4*2*no_trellis_states;
-av_codeword_length = Find_av_codeword_length_zeta(maxcodes,k,s);
-no_trellis = av_codeword_length * num_symbols;
 
-Complexity_per_iter_RExpGEC = no_trellis*no_gammas+2*no_trellis*no_alphas+2*no_trellis*no_betas+2*no_trellis*no_deltas+3*no_trellis;
-
-
+% URC - this is the same as before
 
 no_alphas = 2;
 no_betas = 2;
@@ -100,7 +91,7 @@ Complexity_per_iter_URC = no_trellis*no_gammas+2*no_trellis*no_alphas+2*no_trell
 
 
 complexity_array_initial = 1:1:num_its;
-complexity_array = complexity_array_initial*Complexity_per_iter_RExpGEC + complexity_array_initial*Complexity_per_iter_URC;
+complexity_array =  complexity_array_initial*Complexity_per_iter_URC;
 %%
 
 
@@ -108,7 +99,7 @@ results = zeros(1,num_its+5);
 
 
 % Choose a file to save the results into.
-filename = ['VariablesStorage/results_k=',num2str(k),'_R=',num2str(codingrate),'_p1=',num2str(p1),'_num_sym=',num2str(num_symbols),'_maxcode=',num2str(maxcodes),'_depth=',num2str(depth),'_snr=',num2str(SNR_start),'.mat'];
+filename = ['VariablesStorage/ExpGCCURCresults_k=',num2str(k),'_R=',num2str(codingrate),'_p1=',num2str(p1),'_num_sym=',num2str(num_symbols),'_maxcode=',num2str(maxcodes),'_depth=',num2str(depth),'_snr=',num2str(SNR_start),'.mat'];
 save(filename, 'results', '-MAT');
 
 % Setup the SNR for the first iteration of the loop.
@@ -121,15 +112,7 @@ BERRaw=1;
 
 %% this section is for calculating the probabilities of the trellis - in practice this would be from an equation
 
-%Generate array of symbols in the zeta distribution
-symbols_probs=generate_zeta_symbols_finite_dict(num_test_symbols,maxcodes,s);
 
-%Generate a reordered ExpG codeword from the symbols
-reorderedcodeword_probs = generate_RExpGcodeword(k,symbols_probs);
-
-
-%work through trellis and return how many transitions were recorded
-probs=calculatetrellisprobs(trellis,reorderedcodeword_probs);
 
 
 
@@ -164,17 +147,18 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
         symbols=symbolarray(startpoint:(num_symbols+startpoint));
         
         %Generate a reordered ExpG codeword from the symbols
-        reorderedcodeword = generate_RExpGcodeword(k,symbols);
+        codeword = generate_ExpGcodeword(k,symbols);
         
-        %Generate RExpGEC codeword
-        RExpGEC=generateRExpGEC(trellis,reorderedcodeword);
+        %Generate ExpG_CC codeword
+        ExpG_CC=CC2_encoder(codeword);
+        ExpG_CC=reshape(ExpG_CC,1,[]);
         
         %Generate the first interleaver & interleave
-        interleaver1 = randperm(length(RExpGEC)); % create the interleaver
-        RExpGECint=RExpGEC(interleaver1); % interleave the codeword
+        interleaver1 = randperm(length(ExpG_CC)); % create the interleaver
+        ExpG_CCint=ExpG_CC(interleaver1); % interleave the codeword
         
         %Pass through URC encorder
-        TxCodeword=URC_encoder(RExpGECint);
+        TxCodeword=URC_encoder(ExpG_CCint);
         
         %Generate the second interleaver & interleave
         interleaver2 = randperm(length(TxCodeword)); % create the interleaver
@@ -224,41 +208,43 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
         deinterleavedchannelLLRs = zeros(size(channelLLRs));
         deinterleavedchannelLLRs(interleaver2) = channelLLRs;
         
-        RExpGECinttildea = zeros(size(channelLLRs));
+        ExpG_CCinttildea = zeros(size(channelLLRs));
         
         %% iterations will start from here
         for m=1:max_its
             %URC decoding
             
-            RExpGECinttildee = URC2_decoder_bcjr(RExpGECinttildea,deinterleavedchannelLLRs); %
+            ExpG_CCinttildee = URC2_decoder_bcjr(ExpG_CCinttildea,deinterleavedchannelLLRs); %
             
             
             
             % Deinterleaver 1
-            RExpGECtildea = zeros(size(RExpGECinttildee));
-            RExpGECtildea(interleaver1) = RExpGECinttildee;
+            ExpG_CCtildea = zeros(size(ExpG_CCinttildee));
+            ExpG_CCtildea(interleaver1) = ExpG_CCinttildee;
+            
+            ExpG_CCtildea=reshape(ExpG_CCtildea,2,[]);
             
             % Trellis Decoder
-            [RExpGECtildee, RExpGtildep] = RExpGEC_trellis_decoder(RExpGECtildea,trellis,probs);
+            [ExpG_CCtildee, ExpG_CCtildep] = CC2_decoder_bcjr(ExpG_CCtildea);
             
             
             
             % Check if decoding has been successful
-            xhat = (sign(RExpGtildep) + 1) / 2;
+            xhat = (sign(ExpG_CCtildep) + 1) / 2;
             
-            errorbits(m)=sum(reorderedcodeword~=xhat) + errorbits(m);
+            errorbits(m)=sum(codeword~=xhat) + errorbits(m);
             
             
-            if isequal(xhat,reorderedcodeword)
+            if isequal(xhat,codeword)
                 
                 break;
             end
             
             % Interleaver 1
-            RExpGECinttildea = RExpGECtildee(interleaver1);
+            ExpG_CCinttildea = ExpG_CCtildee(interleaver1);
         end
         
-        totalbits=length(reorderedcodeword) + totalbits;
+        totalbits=length(codeword) + totalbits;
         
         Rxsymbols= RExpGEC_symbol_decoder(xhat,trellis,k,maxcodes);
         symbolsinerr = levenshtein_distance(Rxsymbols,symbols) + symbolsinerr;

@@ -57,6 +57,7 @@ r = max(transitions(:,2));
 % Determine length of RExpG encoded bit sequence
 b = size(RExpGECtildea,2);
 
+mid = round(b/2);
 
 %set gammas up from the probs
 
@@ -75,10 +76,11 @@ end
 
 
 for codebit_index = 1:n
-    gammas(transitions(:,3+codebit_index)==1,:) = gammas(transitions(:,3+codebit_index)==1,:) + repmat(RExpGECtildea(codebit_index, :), sum(transitions(:,3+codebit_index)==1),1);
+    gammas(transitions(:,3+codebit_index)==1,:) = gammas(transitions(:,3+codebit_index)==1,:) + repmat(RExpGECtildea(codebit_index, :), sum(transitions(:,3+codebit_index)==1),1); 
 %     gammas(transitions(:,3+codebit_index)==0,:) = gammas(transitions(:,3+codebit_index)==0,:) - repmat(RExpGECtildea(codebit_index, :), sum(transitions(:,3+codebit_index)==0),1);
 end
 
+%             complexity_counter = complexity_counter+size(transitions,1);
 
 
 % Forward recursion to calculate state log-probabilities
@@ -87,13 +89,15 @@ alphas(1,1)=0; % We know that this is the first state
 
 
 for j = 2:b
-    temp = alphas(transitions(:,1),j-1)+gammas(:,j-1);
+    temp = alphas(transitions(:,1),j-1)+gammas(:,j-1);                       
     for m = 1:r
         if ismember(m,transitions(:,2))
         alphas(m,j) = maxstar(temp(transitions(:,2) == m));
         end
     end
 end
+% 
+%             complexity_counter = 2*sum(~isinf(alphas(transitions(:,1),mid)+gammas(:,mid))) + complexity_counter;
 
 % Backward recursion to calculate state log-probabilities
 betas=-inf(r,b);

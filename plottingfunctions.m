@@ -11,8 +11,3 @@ plot (y_mat(index,:),z_mat(index,:))
 
 
 end
-
-function plot2DBERfrom3DSNR(x_mat,y_mat,z_mat,targetSNR)
-
-
-end

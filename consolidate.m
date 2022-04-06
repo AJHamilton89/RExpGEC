@@ -7,19 +7,19 @@
 
 % Copyright (C) 2022 Alex Hamilton
 
-% This program is free software: you can redistribute it and/or modify it 
+% This program is free software: you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the
-% Free Software Foundation, either version 3 of the License, or (at your 
+% Free Software Foundation, either version 3 of the License, or (at your
 % option) any later version.
 
-% This program is distributed in the hope that it will be useful, but 
-% WITHOUT ANY WARRANTY; without even the implied warranty of 
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General 
+% This program is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 % Public License for more details.
 
 % The GNU General Public License can be seen at http://www.gnu.org/licenses/.
 
-function consolidate(k,num_symbols,p1,codingrate,maxcodes,depth)
+function [x_mat,y_mat,z_mat] = consolidate(k,num_symbols,p1,codingrate,maxcodes,depth)
 
 
 format shortG
@@ -34,15 +34,17 @@ filenames = dir;
 for file_index = 1:length(dir)
     % ...see if it is one of our results files.
     if ~isempty(strfind(filenames(file_index).name, filestring)) %if ~isempty(strfind(filenames(file_index).name, 'results_k=',num2str(k),'_R=',num2str(codingrate),'_p1=',num2str(p1),'_num_sym=',num2str(num_symbols)))
-        % If so, load the results.
-        load('-MAT', filenames(file_index).name, 'results' , 'complexity_array');
-    
-        % Consolidate the results into a single matrix.
-        if first
-            consolidated_results = results;
-            first = false;
-        else
-            consolidated_results = [consolidated_results;results];
+        if isempty(strfind(filenames(file_index).name,'ExpGCC')) %make sure it's not the ExpGCC
+            % If so, load the results.
+            load('-MAT', filenames(file_index).name, 'results' , 'complexity_array');
+            
+            % Consolidate the results into a single matrix.
+            if first
+                consolidated_results = results;
+                first = false;
+            else
+                consolidated_results = [consolidated_results;results];
+            end
         end
     end
 end
@@ -54,18 +56,18 @@ results = consolidated_results;
 
 SNR_Vec=consolidated_results(:,1);
 
-[x_mat,y_mat]=meshgrid(SNR_Vec,complexity_array); 
+[x_mat,y_mat]=meshgrid(SNR_Vec,complexity_array);
 
 z_mat=consolidated_results(:,6:end)';
 
-figure
-surf(x_mat,y_mat,z_mat)
-set(gca, 'zScale', 'log')
-set(gca, 'yScale', 'log')
-zlim([0.001 1])
-ylabel ('Complexity')
-xlabel ('SNR')
-zlabel ('BER')
+% figure
+% surf(x_mat,y_mat,z_mat)
+% set(gca, 'zScale', 'log')
+% set(gca, 'yScale', 'log')
+% zlim([0.001 1])
+% ylabel ('Complexity')
+% xlabel ('SNR')
+% zlabel ('BER')
 
 % Save the consolidated results into a binary file. This avoids the loss of precision that is associated with ASCII files.
 save(['consolidated',filestring,'.mat'], 'results', 'complexity_array', '-MAT');

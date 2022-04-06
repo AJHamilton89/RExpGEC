@@ -19,7 +19,7 @@
 
 % The GNU General Public License can be seen at http://www.gnu.org/licenses/.
 
-function ExpGCCURCconsolidate(k,num_symbols,p1,codingrate,maxcodes,depth)
+function [x_mat,y_mat,z_mat] = ExpGCCURCconsolidate(k,num_symbols,p1,codingrate,maxcodes,depth)
 
 
 format shortG
@@ -58,14 +58,14 @@ SNR_Vec=consolidated_results(:,1);
 
 z_mat=consolidated_results(:,6:end)';
 
-figure
-surf(x_mat,y_mat,z_mat)
-set(gca, 'zScale', 'log')
-set(gca, 'yScale', 'log')
-zlim([0.001 1])
-ylabel ('Complexity')
-xlabel ('SNR')
-zlabel ('BER')
+% figure
+% surf(x_mat,y_mat,z_mat)
+% set(gca, 'zScale', 'log')
+% set(gca, 'yScale', 'log')
+% zlim([0.001 1])
+% ylabel ('Complexity')
+% xlabel ('SNR')
+% zlabel ('BER')
 
 % Save the consolidated results into a binary file. This avoids the loss of precision that is associated with ASCII files.
 save(['ExpGCCURCconsolidated',filestring,'.mat'], 'results', 'complexity_array', '-MAT');

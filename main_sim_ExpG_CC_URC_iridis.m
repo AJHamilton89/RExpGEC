@@ -24,7 +24,7 @@ maxerrors = 10000; % this will affect how smooth the BER plots are 10000
 
 % Set default values if input parameters are not provided
 if ~exist('SNR_start','var')
-    SNR_start = -10;
+    SNR_start = 10;
 end
 if ~exist('SNR_delta','var')
     SNR_delta = 0.25;
@@ -39,7 +39,7 @@ if ~exist('processes','var')
     processes = 1;
 end
 if ~exist('p1','var')
-    p1 = 0.555;
+    p1 = 0.9;
 end
 if ~exist('k','var')
     k = 1;
@@ -55,7 +55,7 @@ if ~exist('codingrate','var')
 end
 
 %Generate the trellis
-trellis=generatetransitionstrellis(k,depth,codingrate);
+% trellis=generatetransitionstrellis(k,depth,codingrate);
 
 % Deal with parallel processing on slurm
 process = str2double(getenv('SLURM_ARRAY_TASK_ID'));
@@ -105,6 +105,7 @@ save(filename, 'results', '-MAT');
 % Setup the SNR for the first iteration of the loop.
 SNR_count = 1;
 SNR = SNR_start;
+FER = 1;
 BER = 1;
 BER1iter = 1;
 BER10iter = 1;
@@ -124,8 +125,13 @@ BERRaw=1;
 %Generate array of symbols in the zeta distribution
 symbolarray=generate_zeta_symbols_finite_dict(num_symbols*100,maxcodes,s);
 
+codewordarray=generate_ExpGcodeword(k,symbolarray);
 
+LLRcodewordones=log(sum(codewordarray)/length(codewordarray));
 
+LLRcodewordzeroes=log([length(codewordarray)-sum(codewordarray)]/length(codewordarray));
+
+LLRinputCC = LLRcodewordzeroes - LLRcodewordones ;
 
 
 while SNR <= SNR_stop && BERRaw >= BER_stop
@@ -133,14 +139,17 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
     % Counters to store the number of errors and bits simulated so far.
     errorbits=zeros(1,max_its);
     totalbits=0;
-    symbolsinerr=0;
-    totalsymbols=0;
+ 
     rawerrors=0;
     totalrawbits=0;
+    correctframes=0;
+    totalframes=0;
+        symbolsinerr=0;
+    totalsymbols=0;
     
     while errorbits(num_its) < maxerrors && totalbits < (maxerrors/BER_stop) %if second logical statement then look at lower iteration count
         
-        
+        totalframes=totalframes+1;
         
         %%% Transmit Functionality
         startpoint=randi(num_symbols*99);
@@ -208,7 +217,11 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
         deinterleavedchannelLLRs = zeros(size(channelLLRs));
         deinterleavedchannelLLRs(interleaver2) = channelLLRs;
         
-        ExpG_CCinttildea = zeros(size(channelLLRs));
+        ExpG_CCinttildea = zeros(size(channelLLRs)); % vector = log(sum(codeword)/length(codeword))
+        
+        %ExpG_CCtildepa=zeros(1,size(channelLLRs,2)/2);
+        
+        ExpG_CCtildepa = repmat(LLRinputCC,1,(size(channelLLRs,2)/2));
         
         %% iterations will start from here
         for m=1:max_its
@@ -222,10 +235,10 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
             ExpG_CCtildea = zeros(size(ExpG_CCinttildee));
             ExpG_CCtildea(interleaver1) = ExpG_CCinttildee;
             
-            ExpG_CCtildea=reshape(ExpG_CCtildea,2,[]);
+             ExpG_CCtildea=reshape(ExpG_CCtildea,2,[]);
             
             % Trellis Decoder
-            [ExpG_CCtildee, ExpG_CCtildep] = CC2_decoder_bcjr(ExpG_CCtildea);
+            [ExpG_CCtildep,ExpG_CCtildee] = CC2_decoder_bcjr(ExpG_CCtildepa,ExpG_CCtildea);  %ExpG_CCtildepa should have a bias based on the probability of 1 vs 0 from source LLR of ratio.
             
             
             
@@ -236,32 +249,42 @@ while SNR <= SNR_stop && BERRaw >= BER_stop
             
             
             if isequal(xhat,codeword)
-                
+                correctframes=correctframes+1;
                 break;
             end
             
             % Interleaver 1
             ExpG_CCinttildea = ExpG_CCtildee(interleaver1);
+            ExpG_CCtildepa=ExpG_CCtildep;
         end
         
         totalbits=length(codeword) + totalbits;
         
-        Rxsymbols= RExpGEC_symbol_decoder(xhat,trellis,k,maxcodes);
-        symbolsinerr = levenshtein_distance(Rxsymbols,symbols) + symbolsinerr;
-        totalsymbols = length(symbols) + totalsymbols ;
+        
+        %%%%
+%         Need to create a ExpG codeword decoder from CC decoder or
+%         alternatively could do a packet/frame error rate?
+%         
+        %%%%
+        
+        
+         Rxsymbols= ExpG_symbol_decoder(xhat,k,maxcodes);
+         symbolsinerr = levenshtein_distance(Rxsymbols,symbols) + symbolsinerr;
+         totalsymbols = length(symbols) + totalsymbols ;
         
         BER=errorbits(num_its)./totalbits;
 %         BER10iter=errorbits(10)./totalbits;
 %         BER1iter=errorbits(1)./totalbits;
         BERarray=errorbits/totalbits;
         SER=symbolsinerr/totalsymbols;
+        FER=(totalframes-correctframes)/totalframes;
         BERRaw=rawerrors/totalrawbits;
         
         % Store the SNR and BER in a matrix and display it.
         results(SNR_count,1) = SNR;
         results(SNR_count,2) = errorbits(max_its);
         results(SNR_count,3) = totalbits;
-        results(SNR_count,4) = BER;
+        results(SNR_count,4) = FER;
         results(SNR_count,5) = SER;
         results(SNR_count,6:max_its+5) = BERarray;%BER10iter;
 %         results(SNR_count,7) = BER1iter;

@@ -21,7 +21,7 @@ bit_count=100000;
 % Number of a priori mutual informations to consider
 IA_count=50;
 
-
+EbN0=SNR-10*log10(0.7669);
 
 % Channel SNR in dB
 SNR = 2:0.2:2.2;
@@ -47,7 +47,7 @@ for SNRindex=1:length(SNR);
         
         % Generate some random bits
         uncoded_bits  = round(rand(1,bit_count));
-        coded_bits = URC_encoder(uncoded_bits);
+        coded_bits = URC8_encoder(uncoded_bits);
         
         
         % QPSK modulator
@@ -98,7 +98,7 @@ for SNRindex=1:length(SNR);
         end
         
         % Do the BCJR
-        extrinisic_llrs = URC2_decoder_bcjr(apriori_uncoded_llrs,apriori_channel_llrs);
+        extrinisic_llrs = URC8_decoder_bcjr(apriori_uncoded_llrs,apriori_channel_llrs);
         
         
         
@@ -134,10 +134,10 @@ for SNRindex=1:length(SNR);
     % Display the area beneath the EXIT function
     annotation('textbox','String',{['Area = ', num2str(area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
     
-    fn1 = sprintf('Figures/EXITURC2_SNR=%i.fig',SNR(SNRindex));
+    fn1 = sprintf('Figures/EXITURC_SNR=%i.fig',SNR(SNRindex));
     saveas(gcf,fn1)
     
-    fn2 = sprintf('VariablesStorage/EXITURC2Workspace_SNR=%i',SNR(SNRindex));
+    fn2 = sprintf('VariablesStorage/EXITURC8Workspace_SNR=%i',SNR(SNRindex));
     save(fn2)
     
 end

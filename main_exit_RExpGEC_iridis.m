@@ -13,7 +13,26 @@
 % Public License for more details.
 %
 % The GNU General Public License can be seen at http://www.gnu.org/licenses/.
-clear all
+
+function main_exit_RExpGEC_iridis(processes)
+
+if ~exist('processes','var')
+    processes = 1;
+end
+
+% Deal with parallel processing on slurm
+process = str2double(getenv('SLURM_ARRAY_TASK_ID'));
+if isnan(process)
+    process = 0;
+    processes = 1;
+else
+    if process >= processes
+        error('process >= processes');
+    end
+end
+
+
+
 
 % set REXpGEC parameters
 
@@ -21,8 +40,9 @@ clear all
 
 prev='';
 
-p1_count=10;
+p1_count=processes;
 p1 = 0.00001+0.9999*(0:1/(p1_count-1):1);
+p1_index=process+1;
 
 maxcodes = 100; % set what the maximum value of codeset is. - Powers of 2  make sense
 num_symbols=10000; %defines block size
@@ -44,7 +64,7 @@ for codingrate=2:4
             trellis=generatetransitionstrellis(k,depth,codingrate);
             
             
-            for p1_index = 6:p1_count
+            
                 
                 s=zeta_p1_to_s(p1(p1_index));
                 s_storage(p1_index)=s;
@@ -160,30 +180,30 @@ for codingrate=2:4
                 
                 
                 %Create a figure to plot the results.
-                figure;
-                axis square;
-                EXITtitle=sprintf('Inverted EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
-                title(EXITtitle);
-                ylabel('I_A');
-                xlabel('I_E');
-                xlim([0,1]);
-                ylim([0,1]);
-                
-                hold on;
-                
-                cnmean=IE_av;
-                
-                % % Plot the  EXIT function for the RExpgEC
-                %         plot(IE_av,IAs,'-');
-                plot(IE_means_hist,IAs);
-                plot(IE_means_hist_noprobs,IAs,'b--o');
-                %                 plot(IE_av,IAs,'b');
-                %                 legend({'True quality','Claimed quality'},'Location','northwest');
-                
-                current_label = [prev; sprintf('   Probs K=%i p1=%i',k,p1(p1_index)); sprintf('No Probs K=%i p1=%i',k,p1(p1_index)) ];
-                legend(current_label,'Location','northwest');
-                prev = current_label;
-                drawnow
+%                 figure;
+%                 axis square;
+%                 EXITtitle=sprintf('Inverted EXIT Function of RExpGEC  Depth=%i Rate=%i K=%i maxcodes=%i num symbols=%i p1=%i.fig',depth,codingrate,k,maxcodes,num_symbols,p1(p1_index));
+%                 title(EXITtitle);
+%                 ylabel('I_A');
+%                 xlabel('I_E');
+%                 xlim([0,1]);
+%                 ylim([0,1]);
+%                 
+%                 hold on;
+%                 
+%                 cnmean=IE_av;
+%                 
+%                 % % Plot the  EXIT function for the RExpgEC
+%                 %         plot(IE_av,IAs,'-');
+%                 plot(IE_means_hist,IAs);
+%                 plot(IE_means_hist_noprobs,IAs,'b--o');
+%                 %                 plot(IE_av,IAs,'b');
+%                 %                 legend({'True quality','Claimed quality'},'Location','northwest');
+%                 
+%                 current_label = [prev; sprintf('   Probs K=%i p1=%i',k,p1(p1_index)); sprintf('No Probs K=%i p1=%i',k,p1(p1_index)) ];
+%                 legend(current_label,'Location','northwest');
+%                 prev = current_label;
+%                 drawnow
 %                 Display the area beneath the EXIT function
                                 annotation('textbox','String',{['Area = ', num2str(1-area)]},'LineStyle','none','Position',[0.7 0.1 0.2 0.1]);
                 

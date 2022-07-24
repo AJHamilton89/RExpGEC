@@ -139,7 +139,7 @@ probs=calculatetrellisprobs(trellis,reorderedcodeword_probs);
 
 
 %Generate array of symbols in the zeta distribution
-symbolarray=generate_zeta_symbols_finite_dict(num_symbols*100,maxcodes,s);
+symbolarray=generate_zeta_symbols_finite_dict(num_symbols*100,maxcodes,s); %perhaps look to run faster? and embed within while loop
 
 
 

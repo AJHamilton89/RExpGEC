@@ -1,4 +1,4 @@
-function [averagecodewordlength] = Find_av_codeword_length_zeta(maxcodes,k,s)
+function [averagecodewordlength,entropy] = Find_av_codeword_length_zeta(maxcodes,k,s)
 
 %create probabibility distribution
 for x=1:maxcodes
@@ -7,6 +7,8 @@ end
 
 %normalise Probability distribution
 Px=Px./sum(Px); 
+
+entropy=sum(-Px.*log2(Px));
 
 codewords = createExpGcodes(maxcodes,k);
             

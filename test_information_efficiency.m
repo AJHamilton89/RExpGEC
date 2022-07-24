@@ -3,14 +3,14 @@ clear all
 
 index = 1;
 
-kmax=1;
-p1_count=10;
+kmax=3;
+p1_count=20;
 
 
 % p1 = (0:(p1_count-1))/(p1_count-1);
 p1 = 0.00001+0.9999*(0:1/(p1_count-1):1);
 
-for max=[100];%10,100,1000,
+for max=[1000];%10,100,1000,
     
     for p1_index = 1:p1_count
         
@@ -98,6 +98,7 @@ for max=[100];%10,100,1000,
     ylim([0 1])
     xlim([0 1])
     grid on
+    legend("k = 0","k = 1","k = 2","k = 3","k = 4","k = 5")
     drawnow
     
     figure
@@ -110,6 +111,8 @@ for max=[100];%10,100,1000,
     ylim([0 1])
     xlim([1 13])
     grid on
+    legend("k = 0","k = 1","k = 2","k = 3","k = 4","k = 5")
+
     drawnow
     
     
